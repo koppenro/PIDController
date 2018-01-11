@@ -16,8 +16,6 @@ PIDController::PIDController() {
   fGCPort = "";
   fTB = new KITTempBoard();
   fGC = new GenesysControl();
-  fRangeLow = -25;
-  fRangeUp = 30;
 
   // PID controller settings
   fPWeight = 0;
@@ -115,11 +113,9 @@ bool PIDController::readConfigFile(std::string pPathToCfgFile) {
           fGCPort = "";
         }
       }
-      if (line.substr(0, posEqual-1) == "RangeLow") { fRangeLow = std::stod(line.substr(posEqual+1,line.size())); }
-      if (line.substr(0, posEqual-1) == "RangeUp") { fRangeUp = std::stod(line.substr(posEqual+1,line.size())); }
     }
     std::cout << "INFO: Config file parameters read" << std::endl;
-    std::cout << fT_Set << "\t" << fContChannel0 << "\t" << fContChannel1 << "\t" << fPWeight << "\t" << fIWeight << "\t" << fDWeight << "\t" << fTBPort << "\t" << fGCPort << "\t" << fRangeLow << "\t" << fRangeUp << std::endl;
+    std::cout << fT_Set << "\t" << fContChannel0 << "\t" << fContChannel1 << "\t" << fPWeight << "\t" << fIWeight << "\t" << fDWeight << "\t" << fTBPort << "\t" << fGCPort << std::endl;
   }
   else {
     std::cout << "ERROR: Could not open config file! Program will start with default hard coded parameters!" << std::endl;
@@ -268,20 +264,6 @@ void PIDController::startControlLoop() {
       std::cout << "ERROR: Failure during reading of temperatures" << std::endl;
       fRunning = false;
     }
-/*    // Test if all temperatures are inside the allowed range
-    for(std::vector<double>::iterator it = cCurTemps.begin(); it != cCurTemps.end(); ++it) {
-      if ( *it < fRangeLow or *it > fRangeUp) {
-        fRunning = false;
-        std::cout << "ERROR: Some of the temperature values are not in the allowed range!" << std::endl;
-      }
-    }
-    for(std::vector<double>::iterator it = cCurTemps2.begin(); it != cCurTemps2.end(); ++it) {
-      if ( *it < fRangeLow or *it > fRangeUp) {
-        fRunning = false;
-        std::cout << "ERROR: Some of the temperature values are not in the allowed range!" << std::endl;
-      }
-    }
-*/
 
     if (fFirstPIDStep) { fMeanPrevious = (cCurTemps[fContChannel0] + cCurTemps[fContChannel1] + cCurTemps2[fContChannel0] + cCurTemps2[fContChannel1])/4.; }
     if (fRunning) {

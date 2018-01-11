@@ -29,8 +29,6 @@ class PIDController
     double fDWeight;
     std::string fTBPort;
     std::string fGCPort;
-    double fRangeLow;
-    double fRangeUp;
 
     // additional class variables
     high_resolution_clock::time_point fTimerPrevious;
