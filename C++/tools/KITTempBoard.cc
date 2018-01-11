@@ -39,9 +39,7 @@ bool KITTempBoard::init(std::string pPortName) {
   KITTempBoard::SerialWrite("N");
   KITTempBoard::SerialWrite("O");
   KITTempBoard::SerialWrite("Z");
-  std::cout << "Test 1" << std::endl;
   std::string cAnswer = KITTempBoard::SerialRead();
-  std::cout << "Test" << std::endl;
   if (cAnswer.substr(0,18).compare("Sensor Settings: ")!= 1 ) {   // card is after power cycle in continuous readout mode
     cAnswer = KITTempBoard::SerialRead();
   }
@@ -100,8 +98,6 @@ void KITTempBoard::setPTConfig(std::string hexDec) {
   KITTempBoard::SerialWrite("O");   // set request mode
   usleep(5000000);
   KITTempBoard::SerialRead();
-  //KITTempBoard::SerialRead();
-  //KITTempBoard::SerialRead();
   usleep(1000000);
 
 }
@@ -120,12 +116,10 @@ std::vector<double> KITTempBoard::getTemperature() {
   //std::cout << cAnswer << std::endl;
   int cPosition = cAnswer.find("\t");
   std::string substr = "";
-  //int counter = 0;
   while(cPosition != std::string::npos) {
     fCurrentTemp.push_back(stod(cAnswer.substr(0, cPosition)));
     cAnswer.erase(0,cPosition+1);
     cPosition = cAnswer.find("\t");
-    //counter++;
   }
   return fCurrentTemp;
 }

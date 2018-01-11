@@ -43,7 +43,7 @@ PIDController::~PIDController() {
 // ##                                    Device manager                                         ##
 // ###############################################################################################
 
-bool PIDController::initTB() {   // Temperature Board control
+bool PIDController::initTB() {
   // Init Temperature Board
   bool cTBinit = fTB->init(fTBPort);
   if( cTBinit ) {
@@ -58,8 +58,8 @@ bool PIDController::initTB() {   // Temperature Board control
   return cTBinit;
 }
 
-bool PIDController::initGC(int pAddress) {   // Genesys Control
-  // Init Genesys low power supply
+bool PIDController::initGC(int pAddress) {
+  // Init Genesys power supply
   bool cGCinit = fGC->init(fGCPort, pAddress);
   if ( cGCinit ) {
     fGC->setVoltage(0);
@@ -206,22 +206,27 @@ double PIDController::calcMeanTControl(std::vector<double> pCurTemps, std::vecto
   for(std::vector<double>::iterator it = cTempValues.begin(); it != cTempValues.end(); ++it) { s = s + pow((*it - cMean),2); }
   s = sqrt(s/(cTempValues.size()-1));
 
-  //Reject values which are more than three standard deviation away from previous mean value
-  double lowerLimit = fMeanPrevious - 3*s;
-  double upperLimit = fMeanPrevious + 3*s;
+  //Reject values which are more than 3 degrees away from previous mean value
+  double lowerLimit = fMeanPrevious - 3;
+  double upperLimit = fMeanPrevious + 3;
   cMean = cMean*cTempValues.size();
   int counter = 0;
   for(std::vector<double>::iterator it = cTempValues.begin(); it != cTempValues.end(); ++it) {
     if ( *it > upperLimit || *it < lowerLimit ) {
-      std::cout << "Mean before rejection " << cMean/cTempValues.size() << std::endl;
       cMean = cMean - *it;
       counter++;
-      std::cout << "Rejected " << *it << std::endl;
+      std::cout << "WARNING: Temperature value rejected due to deviation with respect to the previous mean value: " << *it << std::endl;
     }
   }
-  cMean = cMean/(cTempValues.size() - counter);
-  cMean = fMeanPrevious;
-
+  if(counter == 4) {
+    std::cout << "ERROR: rejected all temperature values due to too high deviation with respect to the previous mean value!" << std::endl;
+    cMean = fMeanPrevious;
+    fRunning = false;
+  }
+  else {
+    cMean = cMean/(cTempValues.size() - counter);
+    fMeanPrevious = cMean;
+  }
   return cMean;
 }
 
@@ -253,7 +258,6 @@ void PIDController::startControlLoop() {
   std::cout << "Time\tTSet\tTIs\tV\tT0\tT1\tT2\tT3\tI" << std::endl;
   while (fRunning) {
     std::vector<double> cCurTemps = fTB->getTemperature();
-    //usleep(500000);
     std::vector<double> cCurTemps2 = fTB->getTemperature();
     if(cCurTemps.size() != 4 || cCurTemps2.size() != 4) {
       // Stop control loop due to failure during reading of temperatures
@@ -278,7 +282,9 @@ void PIDController::startControlLoop() {
       if ( PIDController::signum(fOldVoltage)*PIDController::signum(fNewVoltage) == -1 ) {
         if (fGCRunning) {
           fGC->setVoltage(0);
-          while(fGC->getMeasuredOutputVoltage() > 00.1) {
+          usleep(1000000);
+          while(fGC->getMeasuredOutputVoltage() > 00.12) {
+            std::cout << "INFO: Waiting for output voltage to reach values below 0.12 V" << std::endl;
             usleep(200000);
           }
         }

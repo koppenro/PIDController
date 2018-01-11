@@ -50,7 +50,7 @@ bool GenesysControl::init(std::string pPortName, int pRemAddress) {
   //Clear status and reset
   GenesysControl::SerialWrite("CLS\r");
   GenesysControl::SerialRead();
-  //GenesysControl::SerialWrite("RST\r");
+  //GenesysControl::SerialWrite("RST\r");   // command sets current and voltage compliance to zero which can only be changed manually!
   //GenesysControl::SerialRead();
   usleep(1000000); // sleep for 1 second
   return true;
@@ -63,8 +63,6 @@ bool GenesysControl::SerialWrite(std::string pCommand) {
     cWritten = write( tty_fd, &pCommand[cSpot], 1 );
     cSpot += cWritten;
   } while(pCommand[cSpot-1] != '\r' && cWritten > 0);
-
-  //cWritten = write( tty_fd, &pCommand, pCommand.length());
 
     return true;
 }

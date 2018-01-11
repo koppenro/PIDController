@@ -28,8 +28,6 @@ class KITTempBoard
     std::vector<double> getTemperature();
     void switchDigitalPin(bool pStatus);
     void internalCalibration();
-
-
 };
 
 #endif // KITTEMPBOARD_H
